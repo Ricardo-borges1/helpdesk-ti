@@ -1,0 +1,37 @@
+# Docker Compose: sobe o banco (PostgreSQL) e a API com um único comando.
+#   docker compose up --build
+services:
+  # ---------- Banco de dados ----------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: helpdesk
+      POSTGRES_PASSWORD: helpdesk   # senha de DESENVOLVIMENTO; em produção use segredos
+      POSTGRES_DB: helpdesk
+    ports:
+      - "5432:5432"
+    volumes:
+      # Guarda os dados fora do container: sobrevivem a "docker compose down".
+      - dados_postgres:/var/lib/postgresql/data
+    healthcheck:
+      # Só considera o banco "pronto" quando ele aceita conexões.
+      test: ["CMD-SHELL", "pg_isready -U helpdesk -d helpdesk"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------- API (FastAPI) ----------
+  backend:
+    build: ./backend
+    environment:
+      # "db" é o nome do serviço acima: dentro do Docker ele funciona como endereço.
+      DATABASE_URL: postgresql+psycopg://helpdesk:helpdesk@db:5432/helpdesk
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy  # espera o banco ficar pronto antes de iniciar a API
+
+volumes:
+  dados_postgres:

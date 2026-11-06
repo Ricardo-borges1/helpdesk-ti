@@ -1,0 +1,413 @@
+/* ==========================================================
+   Estilos do Helpdesk TI
+   Ideia visual: painel sóbrio de repartição pública, em azul-marinho,
+   com a "régua de status" no topo como elemento principal.
+   ========================================================== */
+
+/* ---------- Cores e medidas (variáveis reutilizadas no arquivo todo) ---------- */
+:root {
+  --fundo: #edf0f4;
+  --superficie: #ffffff;
+  --tinta: #1c2733;
+  --tinta-suave: #596676;
+  --linha: #d3d9e1;
+  --marinho: #1f3a5f;
+  --marinho-escuro: #162b48;
+
+  /* uma cor por status */
+  --aberto: #1f6fb2;
+  --em_andamento: #a86a0c;
+  --resolvido: #2f7d5b;
+  --fechado: #6f7b8a;
+  --perigo: #b42318;
+
+  --fonte-texto: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fonte-titulo: "Newsreader", Georgia, "Times New Roman", serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--fonte-texto);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Contorno bem visível para quem navega pelo teclado (Tab). */
+:focus-visible {
+  outline: 3px solid var(--aberto);
+  outline-offset: 2px;
+}
+
+/* Cor de cada status, guardada em --cor para os componentes usarem. */
+.status-aberto { --cor: var(--aberto); }
+.status-em_andamento { --cor: var(--em_andamento); }
+.status-resolvido { --cor: var(--resolvido); }
+.status-fechado { --cor: var(--fechado); }
+
+/* Texto só para leitores de tela (escondido visualmente). */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Página e topo ---------- */
+.pagina {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.topo h1 {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--marinho-escuro);
+}
+
+/* ---------- Botões ---------- */
+.botao {
+  font: inherit;
+  font-weight: 500;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.botao-primario {
+  background: var(--marinho);
+  color: #fff;
+}
+
+.botao-primario:hover:not(:disabled) {
+  background: var(--marinho-escuro);
+}
+
+.botao-texto {
+  background: transparent;
+  color: var(--marinho);
+  padding: 6px 8px;
+}
+
+.botao-texto:hover {
+  text-decoration: underline;
+}
+
+.botao-perigo {
+  color: var(--perigo);
+}
+
+/* ---------- Mensagens ---------- */
+.mensagem-erro {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: #fdecea;
+  border-left: 4px solid var(--perigo);
+  color: #7a1a12;
+}
+
+.aviso {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  margin: 0;
+  padding: 12px 18px;
+  background: var(--marinho-escuro);
+  color: #fff;
+  border-radius: 4px;
+  animation: entrar-baixo 0.2s ease-out;
+}
+
+.vazio {
+  margin: 24px 0;
+  color: var(--tinta-suave);
+}
+
+/* ---------- Resumo: régua + números ---------- */
+.resumo {
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: 6px;
+  padding: 20px 20px 0;
+  margin-bottom: 20px;
+}
+
+.regua {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--linha); /* aparece quando não há chamados */
+}
+
+.regua-trecho {
+  background: var(--cor);
+  min-width: 0;
+  transition: width 0.3s ease;
+}
+
+.resumo-numeros {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.resumo-item {
+  flex: 1 1 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 12px;
+  background: none;
+  border: 0;
+  border-bottom: 4px solid transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--tinta);
+}
+
+button.resumo-item {
+  cursor: pointer;
+}
+
+button.resumo-item:hover {
+  background: #f5f7fa;
+}
+
+/* Status escolhido como filtro: sublinhado grosso na cor do status. */
+.resumo-item.ativo {
+  border-bottom-color: var(--cor);
+  background: #f5f7fa;
+}
+
+.resumo-item .numero {
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--cor, var(--tinta));
+}
+
+.resumo-item .rotulo {
+  color: var(--tinta-suave);
+  font-size: 0.9rem;
+}
+
+/* O SLA estourado fica separado por uma linha vertical, pois não é um filtro. */
+.resumo-item.sla {
+  border-left: 1px solid var(--linha);
+}
+
+.resumo-item.sla .numero {
+  color: var(--perigo);
+}
+
+/* ---------- Filtros e campos de formulário ---------- */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--tinta-suave);
+}
+
+.filtros .campo {
+  margin-bottom: 0;
+}
+
+.campo-busca {
+  flex: 1 1 260px;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  font: inherit;
+  font-weight: 400;
+  color: var(--tinta);
+  padding: 9px 10px;
+  background: var(--superficie);
+  border: 1px solid #aeb7c3;
+  border-radius: 4px;
+}
+
+.campo textarea {
+  resize: vertical;
+}
+
+/* ---------- Tabela ---------- */
+.tabela-area {
+  overflow-x: auto; /* rola de lado em telas pequenas */
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: 6px;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.tabela th {
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.tabela td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e8ecf1;
+  vertical-align: top;
+}
+
+.tabela tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabela .num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.titulo-chamado {
+  display: block;
+  font-weight: 600;
+}
+
+.detalhe {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+}
+
+/* Situação do SLA: um traço colorido à esquerda + texto. */
+.sla {
+  display: inline-block;
+  padding-left: 8px;
+  border-left: 3px solid var(--resolvido);
+  font-size: 0.9rem;
+}
+
+.sla-atencao {
+  border-left-color: var(--em_andamento);
+}
+
+.sla-estourado {
+  border-left-color: var(--perigo);
+  color: var(--perigo);
+  font-weight: 500;
+}
+
+.seletor-status {
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--cor);
+  padding: 5px 8px;
+  background: var(--superficie);
+  border: 1px solid var(--cor);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ---------- Painel lateral do formulário ---------- */
+.painel-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(22, 43, 72, 0.45);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.painel {
+  width: min(440px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  padding: 28px 24px;
+  background: var(--superficie);
+  animation: entrar-direita 0.2s ease-out;
+}
+
+.painel h2 {
+  margin: 0 0 20px;
+  font-family: var(--fonte-titulo);
+  font-size: 1.6rem;
+  color: var(--marinho-escuro);
+}
+
+.painel-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---------- Animações (respondem a ações do usuário) ---------- */
+@keyframes entrar-direita {
+  from { transform: translateX(32px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes entrar-baixo {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Quem pediu menos movimento no sistema operacional não vê animações. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- Telas pequenas ---------- */
+@media (max-width: 600px) {
+  .topo h1 {
+    font-size: 1.75rem;
+  }
+  .resumo-item.sla {
+    border-left: 0;
+  }
+}

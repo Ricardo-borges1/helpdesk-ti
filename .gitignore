@@ -1,6 +1,16 @@
+# Ambientes e dependências (nunca vão para o GitHub)
 .venv/
+node_modules/
+
+# Arquivos gerados
 __pycache__/
 *.pyc
+.pytest_cache/
+dist/
+*.db
+
+# Segredos e configurações locais
 .env
-node_modules/
+
+# Editor
 .vscode/
